@@ -30,6 +30,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 import time
 import unittest
 import traceback
@@ -42,7 +44,7 @@ from genpy import Time, Duration
 # Not much to test, just tripwires
 
 class MessageTest(unittest.TestCase):
-    
+
     def xtest_check_types_Header(self):
         # #2128: test that check_types works with a Header
         # #message. This is a weird case because Header has an aliased
@@ -50,7 +52,7 @@ class MessageTest(unittest.TestCase):
         from test_roslib_comm.msg import HeaderTest
         x = HeaderTest()
         x._check_types()
-        
+
     def test_Message_check_types(self):
         # test on a generated message
         # - use UInt16MultiArray because it has an embedded MultiArrayLayout
@@ -59,11 +61,11 @@ class MessageTest(unittest.TestCase):
         # not checking overflow in this test
         correct = [String(), String('foo'), String(''), String(data='data'),
                    UInt16MultiArray(),
-                   UInt16MultiArray(MultiArrayLayout(), []), 
-                   UInt16MultiArray(MultiArrayLayout(data_offset=1), [1, 2, 3]),         
+                   UInt16MultiArray(MultiArrayLayout(), []),
+                   UInt16MultiArray(MultiArrayLayout(data_offset=1), [1, 2, 3]),
                    UInt16MultiArray(layout=MultiArrayLayout(data_offset=1)),
-                   UInt16MultiArray(layout=MultiArrayLayout(dim=[])),                   
-                   UInt16MultiArray(layout=MultiArrayLayout(dim=[MultiArrayDimension()])),                   
+                   UInt16MultiArray(layout=MultiArrayLayout(dim=[])),
+                   UInt16MultiArray(layout=MultiArrayLayout(dim=[MultiArrayDimension()])),
                    UInt16MultiArray(data=[1, 2, 3]),
                    ]
         for t in correct:
@@ -76,11 +78,11 @@ class MessageTest(unittest.TestCase):
                 pass
 
         wrong = [String(1), String(data=1),
-                 UInt16MultiArray(1, []),                 
+                 UInt16MultiArray(1, []),
                  UInt16MultiArray(MultiArrayLayout(), 1),
                  UInt16MultiArray(String(), []),
-                 UInt16MultiArray(layout=MultiArrayLayout(dim=[1])),  
-                 UInt16MultiArray(layout=MultiArrayLayout(data_offset='')),  
+                 UInt16MultiArray(layout=MultiArrayLayout(dim=[1])),
+                 UInt16MultiArray(layout=MultiArrayLayout(data_offset='')),
                  ]
         for t in wrong:
             try:
@@ -94,9 +96,9 @@ class MessageTest(unittest.TestCase):
 
         from genpy.message import fill_message_args
         from genpy import Message, MessageException
-        
+
         from genpy.msg import TestPrimitiveArray
-            
+
         class M1(Message):
             __slots__ = ['int']
             _slot_types=['int32']
@@ -111,13 +113,13 @@ class MessageTest(unittest.TestCase):
         fill_message_args(msg, [17])
         assert msg == M1(17)
         msg = M1()
-        fill_message_args(msg, [{}]) 
+        fill_message_args(msg, [{}])
         assert msg == M1()
-        
+
         msg = TestPrimitiveArray()
         fill_message_args(msg, [{}])
         assert msg == TestPrimitiveArray()
-        
+
         msg = TestPrimitiveArray()
         # - test fill with non-fixed size
         fill_message_args(msg, [{'ints': [1, 2, 3, 4], 'strings': ['a', 'b', 'c']}])
@@ -150,7 +152,7 @@ class MessageTest(unittest.TestCase):
         msg = TestMsgArray()
         fill_message_args(msg, [{}])
         assert msg == TestMsgArray()
-        
+
         msg = TestMsgArray()
         assert len(msg.strings) == 0
         assert len(msg.fixed_strings) == 1
@@ -189,7 +191,7 @@ class MessageTest(unittest.TestCase):
         m = TestFillEmbedTime()
         fill_message_args(m, [{}])
         self.assertEquals(m.t, Time())
-        self.assertEquals(m.d, Duration())            
+        self.assertEquals(m.d, Duration())
         self.assertEquals(m.str_msg.data, '')
         self.assertEquals(m.str_msg_array, [])
         self.assertEquals(m.i32, 0)
@@ -202,28 +204,28 @@ class MessageTest(unittest.TestCase):
             [[10, 20], [30, 40], {'data': 'foo'}, [['bar'], ['baz']], 32],
             [[10, 20], [30, 40], ['foo'], [{'data': 'bar'}, {'data': 'baz'}], 32],
 
-            [{'t': [10, 20], 'd': [30, 40], 'str_msg': {'data': 'foo'}, 'str_msg_array': [{'data': 'bar'}, {'data': 'baz'}], 'i32': 32}],            
-            [{'t': {'secs': 10, 'nsecs': 20}, 'd': [30, 40], 'str_msg': {'data': 'foo'}, 'str_msg_array': [{'data': 'bar'}, {'data': 'baz'}], 'i32': 32}],            
+            [{'t': [10, 20], 'd': [30, 40], 'str_msg': {'data': 'foo'}, 'str_msg_array': [{'data': 'bar'}, {'data': 'baz'}], 'i32': 32}],
+            [{'t': {'secs': 10, 'nsecs': 20}, 'd': [30, 40], 'str_msg': {'data': 'foo'}, 'str_msg_array': [{'data': 'bar'}, {'data': 'baz'}], 'i32': 32}],
             ]
         for test in equiv:
-            m = TestFillEmbedTime()            
+            m = TestFillEmbedTime()
             try:
                 fill_message_args(m, test)
-            except Exception, e:
+            except Exception as e:
                 self.fail("failed to fill with : %s\n%s"%(str(test), traceback.format_exc()))
 
             self.assertEquals(m.t, Time(10, 20))
-            self.assertEquals(m.d, Duration(30, 40))            
+            self.assertEquals(m.d, Duration(30, 40))
             self.assertEquals(m.str_msg.data, 'foo')
             self.assertEquals(len(m.str_msg_array), 2, m.str_msg_array)
             self.assertEquals(m.str_msg_array[0].data, 'bar')
             self.assertEquals(m.str_msg_array[1].data, 'baz')
             self.assertEquals(m.i32, 32)
-        # test creation of Time/Duration from single number representation, which is necessary for 
-        
+        # test creation of Time/Duration from single number representation, which is necessary for
+
         # yaml single-number support
         # - cannot include in tests above as conversion from integer is lossy
-        m = TestFillEmbedTime()            
+        m = TestFillEmbedTime()
         fill_message_args(m, [10000000020, 30000000040, ['foo'], [['bar'], ['baz']], 32])
         self.assertEquals(10, m.t.secs)
         self.assert_(abs(20 - m.t.nsecs) < 2)
@@ -233,7 +235,7 @@ class MessageTest(unittest.TestCase):
         self.assertEquals(m.str_msg_array[0].data, 'bar')
         self.assertEquals(m.str_msg_array[1].data, 'baz')
         self.assertEquals(m.i32, 32)
-        
+
         bad = [
             # underfill in sub-args
             [[10, 20], [30, 40], ['foo'], [['bar'], ['baz']]],
@@ -248,11 +250,11 @@ class MessageTest(unittest.TestCase):
             [[10, 20], [30, 40, 50], ['foo'], [['bar'], ['baz']], 32],
             [[10, 20], [30, 40], ['foo', 'bar'], [['bar'], ['baz']], 32],
             [[10, 20], [30, 40], ['foo'], [['bar', 'baz'], ['baz']], 32],
-            [[10, 20], [30, 40], ['foo'], [['bar'], ['baz', 'car']], 32],                        
+            [[10, 20], [30, 40], ['foo'], [['bar'], ['baz', 'car']], 32],
 
             # invalid fields
             [{'secs': 10, 'nsecs': 20, 'foo': 1}, {'secs': 30, 'nsecs': 40}, ['foo'], [['bar'], ['baz']], 32],
-            [{'secs': 10, 'nsecs': 20}, {'secs': 30, 'nsecs': 40, 'foo': 1}, ['foo'], [['bar'], ['baz']], 32],            
+            [{'secs': 10, 'nsecs': 20}, {'secs': 30, 'nsecs': 40, 'foo': 1}, ['foo'], [['bar'], ['baz']], 32],
             [[10, 20], [30, 40], {'data': 'foo', 'fata': 1}, [['bar'], ['baz']], 32],
             [[10, 20], [30, 40], ['foo'], [{'data': 'bar'}, {'beta': 'baz'}], 32],
             [{'t': [10, 20], 'd': [30, 40], 'str_msg': {'data': 'foo'}, 'str_msg_array': [{'data': 'bar'}, {'data': 'baz'}], 'i32': 32, 'i64': 64}],
@@ -265,7 +267,7 @@ class MessageTest(unittest.TestCase):
             except genpy.MessageException:
                 failed = False
             self.failIf(failed, "fill_message_args should have failed: %s"%str(b))
-            
+
     def test_fill_message_args_simple(self):
         from genpy.message import fill_message_args
         from genpy.msg import TestFillSimple
@@ -285,7 +287,7 @@ class MessageTest(unittest.TestCase):
             genpy.message._fill_message_args(m, 1, {}, '')
             self.fail("should have raised ValueError for bad msg_args")
         except ValueError: pass
-        
+
         simple_tests = [
             [1, 'foo', [], True],
             [1, 'foo', [1, 2, 3, 4], False],
@@ -296,31 +298,31 @@ class MessageTest(unittest.TestCase):
             self.assertEquals(m.i32, test[0])
             self.assertEquals(m.str, test[1])
             self.assertEquals(m.i32_array, test[2])
-            self.assertEquals(m.b, test[3])            
+            self.assertEquals(m.b, test[3])
 
         # test with dictionaries
         m = TestFillSimple()
         fill_message_args(m, [{}])
         self.assertEquals(m.i32, 0)
-        self.assertEquals(m.str, '')        
+        self.assertEquals(m.str, '')
         self.assertEquals(m.i32_array, [])
         self.assertEquals(m.b, False)
 
         m = TestFillSimple()
         fill_message_args(m, [{'i32': 10}])
         self.assertEquals(m.i32, 10)
-        self.assertEquals(m.str, '')        
+        self.assertEquals(m.str, '')
         self.assertEquals(m.i32_array, [])
         self.assertEquals(m.b, False)
 
         m = TestFillSimple()
         fill_message_args(m, [{'str': 'hello', 'i32_array': [1, 2, 3]}])
         self.assertEquals(m.i32, 0)
-        self.assertEquals(m.str, 'hello')        
+        self.assertEquals(m.str, 'hello')
         self.assertEquals(m.i32_array, [1, 2, 3])
         self.assertEquals(m.b, False)
 
-        # fill_message_args currently does not type check 
+        # fill_message_args currently does not type check
         bad = [
             # extra key
             [{'bad': 1, 'str': 'hello', 'i32_array': [1, 2, 3]}],
@@ -386,14 +388,17 @@ class MessageTest(unittest.TestCase):
         self.assertRaises(SerializationError, genpy.message.check_type,
                           'test', 'bool', 2)
         self.assertRaises(SerializationError, genpy.message.check_type,
-                          'test', 'string', u'UnicodeString')
-        
+                          'test', 'string', 'UnicodeString')
+
     def test_Message(self):
-        import cStringIO
+        try:
+            from cStringIO import StringIO # Python 2.x
+        except ImportError:
+            from io import StringIO # Python 3.x
         from genpy import Message, SerializationError
         self.assert_(isinstance(Message(), Message))
         m = Message()
-        b = cStringIO.StringIO()
+        b = StringIO()
         m.serialize(b)
         m.deserialize('')
 
@@ -414,7 +419,7 @@ class MessageTest(unittest.TestCase):
             def __init__(self, *args, **kwds):
                 super(M1, self).__init__(*args, **kwds)
             def _get_types(self): return []
-            
+
         # - test __str__ on empty
         self.assertEquals('', str(M1()))
         # - should not fail on default constructor
@@ -442,8 +447,8 @@ class MessageTest(unittest.TestCase):
                 m._check_types()
                 self.fail("check_types for %s should have failed"%m)
             except SerializationError: pass
-        
-        
+
+
         valid = [
             ((), {}, M1),
             ((), {}, M2),
@@ -474,7 +479,7 @@ class MessageTest(unittest.TestCase):
                 cls(*args, **kwds)
                 self.fail("Message should have failed for cls[%s] *args[%s] and **kwds[%s]"%(cls, args, kwds))
             except: pass
-        
+
     def test_strify_message(self):
         # this is a bit overtuned, but it will catch regressions
         from genpy.message import Message, strify_message
@@ -485,20 +490,20 @@ class MessageTest(unittest.TestCase):
         self.assertEquals('', strify_message(M1()))
         class M2(Message):
             __slots__ = ['str', 'int', 'float', 'bool', 'list']
-            _slot_types = ['string', 'int32', 'float32', 'bool', 'int32[]']            
+            _slot_types = ['string', 'int32', 'float32', 'bool', 'int32[]']
             def __init__(self, str_, int_, float_, bool_, list_):
                 self.str = str_
-                self.int = int_       
+                self.int = int_
                 self.float = float_
                 self.bool = bool_
                 self.list = list_
-                
+
         self.assertEquals("""str: string
 int: 123456789101112
 float: 5678.0
 bool: True
 list: [1, 2, 3]""", strify_message(M2('string', 123456789101112, 5678., True, [1,2,3])))
-        
+
         self.assertEquals("""str: ''
 int: -1
 float: 0.0
@@ -510,7 +515,7 @@ list: []""", strify_message(M2('', -1, 0., False, [])))
             _slot_types=['M1']
             def __init__(self, m2):
                 self.m2 = m2
-        self.assertEquals("""m2: 
+        self.assertEquals("""m2:
   str: string
   int: -1
   float: 0.0
@@ -523,15 +528,15 @@ list: []""", strify_message(M2('', -1, 0., False, [])))
             _slot_types=['M2[]']
             def __init__(self, m2s):
                 self.m2s = m2s
-                
-        self.assertEquals("""m2s: 
-  - 
+
+        self.assertEquals("""m2s:
+  -
     str: string
     int: 1234
     float: 5678.0
     bool: True
     list: [1, 2, 3]
-  - 
+  -
     str: string
     int: -1
     float: 0.0
@@ -547,28 +552,28 @@ list: []""", strify_message(M2('', -1, 0., False, [])))
             _slot_types=['time', 'duration']
             def __init__(self, t, d):
                 self.t = t
-                self.d = d        
-        self.assertEquals("""t: 
+                self.d = d
+        self.assertEquals("""t:
   secs: 987
   nsecs: 654
-d: 
+d:
   secs: 123
   nsecs: 456""", strify_message(M5(Time(987, 654), Duration(123, 456))))
-        
+
         # test final clause of strify -- str anything that isn't recognized
         self.assertEquals("set([1])", strify_message(set([1])))
 
     def test_strify_yaml(self):
         def roundtrip(m):
             yaml_text = strify_message(m)
-            print yaml_text
-            loaded = yaml.load(yaml_text) 
-            print "loaded", loaded
+            print(yaml_text)
+            loaded = yaml.load(yaml_text)
+            print("loaded", loaded)
             new_inst = m.__class__()
             if loaded is not None:
                 fill_message_args(new_inst, [loaded])
             else:
-                fill_message_args(new_inst, [])                
+                fill_message_args(new_inst, [])
             return new_inst
 
         # test YAML roundtrip. strify_message doesn't promise this
@@ -579,29 +584,29 @@ d:
             _slot_types=[]
             def __init__(self): pass
         self.assertEquals(M1(), roundtrip(M1()))
-        
+
         class M2(Message):
             __slots__ = ['str', 'int', 'float', 'bool', 'list']
-            _slot_types = ['string', 'int32', 'float32', 'bool', 'int32[]'] 
+            _slot_types = ['string', 'int32', 'float32', 'bool', 'int32[]']
             def __init__(self, str_=None, int_=None, float_=None, bool_=None, list_=None):
                 self.str = str_
-                self.int = int_       
+                self.int = int_
                 self.float = float_
                 self.bool = bool_
                 self.list = list_
-                
+
         val = M2('string', 123456789101112, 5678., True, [1,2,3])
         self.assertEquals(val, roundtrip(val))
         # test with empty string and empty list
         val = M2('', -1, 0., False, [])
         self.assertEquals(val, roundtrip(val))
-        
+
         class M3(Message):
             __slots__ = ['m2']
             _slot_types=['test_roslib/M2']
             def __init__(self, m2=None):
                 self.m2 = m2 or M2()
-                
+
         val = M3(M2('string', -1, 0., False, []))
         self.assertEquals(val, roundtrip(val))
 
@@ -618,14 +623,14 @@ d:
             ('int32[]', [1, 2, 3, 4]),
             ('time', Time()), ('time', Time.from_sec(1.0)),
             ('time', Time(10000)), ('time', Time(1000, -100)),
-            ('duration', Duration()),('duration', Duration()), 
+            ('duration', Duration()),('duration', Duration()),
             ('duration', Duration(100)), ('duration', Duration(-100, -100)),
                   ]
 
         for t, v in valids:
             try:
                 check_type('n', t, v)
-            except Exception, e:
+            except Exception as e:
                 traceback.print_exc()
                 raise Exception("failure type[%s] value[%s]: %s"%(t, v, str(e)))
 
@@ -636,12 +641,11 @@ d:
             ('int8', 112312), ('int8', -112312),
             ('uint8', -1), ('uint8', 112312),
             ('int32', '1'), ('int32', 1.),
-            ('int32[]', 1), ('int32[]', [1., 2.]), ('int32[]', [1, 2.]), 
-            ('duration', 1), ('time', 1),            
+            ('int32[]', 1), ('int32[]', [1., 2.]), ('int32[]', [1, 2.]),
+            ('duration', 1), ('time', 1),
             ]
         for t, v in invalids:
             try:
                 check_type('n', t, v)
                 self.fail("check_type[%s, %s] should have failed"%(t, v))
             except SerializationError: pass
-    

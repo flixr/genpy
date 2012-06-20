@@ -30,7 +30,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import cStringIO
+try:
+    from cStringIO import StringIO # Python 2.x
+except ImportError:
+    from io import StringIO # Python 3.x
+
 import time
 
 def test_generate_dynamic():
@@ -41,7 +45,7 @@ def test_generate_dynamic():
     m_cls = msgs['gd_msgs/EasyString']
     m_instance = m_cls()
     m_instance.data = 'foo'
-    buff = cStringIO.StringIO()
+    buff = StringIO()
     m_instance.serialize(buff)
     m_cls().deserialize(buff.getvalue())
 
@@ -57,7 +61,7 @@ probot_msgs/JointState[] goal
 ================================================================================
 MSG: std_msgs/Header
 #Standard metadata for higher-level flow data types
-#sequence ID: consecutively increasing ID 
+#sequence ID: consecutively increasing ID
 uint32 seq
 #Two-integer timestamp that is expressed as:
 # * stamp.secs: seconds (stamp_secs) since epoch
@@ -124,8 +128,7 @@ byte is_calibrated
     _test_ser_deser(m_instance2, m_instance1)
 
 def _test_ser_deser(m_instance1, m_instance2):
-    buff = cStringIO.StringIO()
+    buff = StringIO()
     m_instance1.serialize(buff)
     m_instance2.deserialize(buff.getvalue())
     assert m_instance1 == m_instance2
-        
